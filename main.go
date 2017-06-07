@@ -12,14 +12,12 @@ type Sending struct {
 	Sendingstjenester []Sendingstjeneste
 }
 
-func (s *Produkt) NewestProdukt() Produkt {
+func (s *Sending) NewestProdukt() Value {
 	var newestTime time.Time
-	var newestProdukt Produkt
+	var newestProdukt Value
 
-	t := time.Now()
-
-	for _, val := range Produkt.Values {
-		if val.Created > newestTime {
+	for _, val := range s.Produkt.Values {
+		if val.Created.After(newestTime) {
 			newestTime = val.Created
 			newestProdukt = val
 		}
@@ -52,21 +50,21 @@ func main() {
 		Produkt: Produkt{
 			"2",
 			[]Value{
-				Value{"Produkt", "1", "eef", "B"},
-				Value{"Produkt", "2", "eef", "Z"},
+				Value{"Produkt", "1", "eef", "B", time.Now()},
+				Value{"Produkt", "2", "eef", "Z", time.Now().Add(time.Duration(10))},
 			},
 		},
 		Sendingstjenester: []Sendingstjeneste{
 			Sendingstjeneste{
 				NewestVersion: "1",
 				Values: []Value{
-					Value{"Sendingstjeneste", "1", "eef", "A3"},
+					Value{"Sendingstjeneste", "1", "eef", "A3", time.Now()},
 				},
 			},
 			Sendingstjeneste{
 				NewestVersion: "1",
 				Values: []Value{
-					Value{"Sendingstjeneste", "1", "eef", "A4"},
+					Value{"Sendingstjeneste", "1", "eef", "A4", time.Now()},
 				},
 			},
 		},
@@ -75,5 +73,13 @@ func main() {
 	jsonBytes, _ := json.Marshal(sending)
 
 	fmt.Println(string(jsonBytes))
+	fmt.Println()
+	fmt.Println()
+
+	newestProdukt := sending.NewestProdukt()
+
+	newestProduktJsonBytes, _ := json.Marshal(newestProdukt)
+
+	fmt.Println(string(newestProduktJsonBytes))
 
 }
