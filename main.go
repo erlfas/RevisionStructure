@@ -6,17 +6,33 @@ import (
 	"time"
 )
 
-type Sending struct {
-	NewestVersion     string
-	Produkt           Produkt
-	Sendingstjenester []Sendingstjeneste
+type Shipment struct {
+	NewestVersion int64
+	Product       Product
+	Services      []Service
 }
 
-func (s *Sending) NewestProdukt() Value {
+func (s *Shipment) NewestServices() []Value {
+	serviceValues := make([]Value, 0)
+
+	for _, s := range s.Services {
+		for _, val := range s.Values {
+			if val.Name != "" && val.Value != nil {
+				if s.NewestVersion == val.Version {
+					serviceValues = append(serviceValues, val)
+				}
+			}
+		}
+	}
+
+	return serviceValues
+}
+
+func (s *Shipment) NewestProduct() Value {
 	var newestTime time.Time
 	var newestProdukt Value
 
-	for _, val := range s.Produkt.Values {
+	for _, val := range s.Product.Values {
 		if val.Created.After(newestTime) {
 			newestTime = val.Created
 			newestProdukt = val
@@ -26,19 +42,19 @@ func (s *Sending) NewestProdukt() Value {
 	return newestProdukt
 }
 
-type Produkt struct {
-	NewestVersion string
+type Product struct {
+	NewestVersion int64
 	Values        []Value
 }
 
-type Sendingstjeneste struct {
-	NewestVersion string
+type Service struct {
+	NewestVersion int64
 	Values        []Value
 }
 
 type Value struct {
 	Name    string
-	Version string
+	Version int64
 	User    string
 	Value   interface{}
 	Created time.Time
@@ -46,25 +62,26 @@ type Value struct {
 
 func main() {
 
-	sending := &Sending{
-		Produkt: Produkt{
-			"2",
+	sending := &Shipment{
+		NewestVersion: 2,
+		Product: Product{
+			2,
 			[]Value{
-				Value{"Produkt", "1", "eef", "B", time.Now()},
-				Value{"Produkt", "2", "eef", "Z", time.Now().Add(time.Duration(10))},
+				Value{"Produkt", 1, "eef", "B", time.Now()},
+				Value{"Produkt", 2, "eef", "Z", time.Now().Add(time.Duration(10))},
 			},
 		},
-		Sendingstjenester: []Sendingstjeneste{
-			Sendingstjeneste{
-				NewestVersion: "1",
+		Services: []Service{
+			Service{
+				NewestVersion: 1,
 				Values: []Value{
-					Value{"Sendingstjeneste", "1", "eef", "A3", time.Now()},
+					Value{"Sendingstjeneste", 1, "eef", "A3", time.Now()},
 				},
 			},
-			Sendingstjeneste{
-				NewestVersion: "1",
+			Service{
+				NewestVersion: 1,
 				Values: []Value{
-					Value{"Sendingstjeneste", "1", "eef", "A4", time.Now()},
+					Value{"Sendingstjeneste", 1, "eef", "A4", time.Now()},
 				},
 			},
 		},
@@ -73,13 +90,22 @@ func main() {
 	jsonBytes, _ := json.Marshal(sending)
 
 	fmt.Println(string(jsonBytes))
+
 	fmt.Println()
 	fmt.Println()
 
-	newestProdukt := sending.NewestProdukt()
+	newestProdukt := sending.NewestProduct()
 
 	newestProduktJsonBytes, _ := json.Marshal(newestProdukt)
 
 	fmt.Println(string(newestProduktJsonBytes))
+
+	fmt.Println()
+	fmt.Println()
+
+	newestServices := sending.NewestServices()
+	newestServicesJsonBytes, _ := json.Marshal(newestServices)
+
+	fmt.Println(string(newestServicesJsonBytes))
 
 }
