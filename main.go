@@ -12,6 +12,15 @@ type Shipment struct {
 	Services      []Service
 }
 
+func (s *Shipment) GetLatestVersionCopy() Shipment {
+	shipment := Shipment{
+		NewestVersion: s.NewestVersion,
+		Product:       s.NewestProduct(),
+	}
+
+	return shipment
+}
+
 func (s *Shipment) NewestServices() []Value {
 	serviceValues := make([]Value, 0)
 
@@ -28,18 +37,23 @@ func (s *Shipment) NewestServices() []Value {
 	return serviceValues
 }
 
-func (s *Shipment) NewestProduct() Value {
+func (s *Shipment) NewestProduct() Product {
 	var newestTime time.Time
-	var newestProdukt Value
+	var newestProductValue Value
 
 	for _, val := range s.Product.Values {
 		if val.Created.After(newestTime) {
 			newestTime = val.Created
-			newestProdukt = val
+			newestProductValue = val
 		}
 	}
 
-	return newestProdukt
+	newestProduct := Product{
+		NewestVersion: s.Product.NewestVersion,
+		Values:        []Value{newestProductValue},
+	}
+
+	return newestProduct
 }
 
 type Product struct {
